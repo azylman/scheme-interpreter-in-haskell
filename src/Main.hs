@@ -29,7 +29,7 @@ data LispVal =
 symbol :: Parser Char
 symbol = oneOf "!$%&|*+-/:<=>?@^_~"
 
--- TODO: Add support for character names in addition to characters.
+-- TODO: Add support for character names (e.g. #\space) in addition to characters.
 parseCharacter :: Parser LispVal
 parseCharacter = do
     char '#'
