@@ -37,6 +37,9 @@ parseCharacter = do
     rest <- letter <|> symbol
     return $ Char rest
 
+-- TODO: Add support for floats.
+-- parseFloat :: Parser Float
+
 -- TODO: Add support for escaped characters (e.g. \", \n, \r, \t, \\).
 parseString :: Parser LispVal
 parseString = do
