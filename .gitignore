@@ -1,0 +1,4 @@
+*.lkshw
+*.lkshf
+dist/*
+Setup.lhs
