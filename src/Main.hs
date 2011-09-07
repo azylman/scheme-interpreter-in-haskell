@@ -15,7 +15,7 @@
 module Main where
 import System.Environment
 import Text.ParserCombinators.Parsec hiding (spaces)
-import Monad
+import Control.Monad
 
 data LispVal =
       Atom String
@@ -27,7 +27,7 @@ data LispVal =
     | Char Char
 
 symbol :: Parser Char
-symbol = oneOf "!$%&|*+-/:<=>?@^_~"
+symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 
 -- TODO: Add support for character names (e.g. #\space) in addition to characters.
 parseCharacter :: Parser LispVal

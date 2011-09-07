@@ -2,3 +2,4 @@
 *.lkshf
 dist/*
 Setup.lhs
+workspace.lkshs
