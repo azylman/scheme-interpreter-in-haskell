@@ -23,6 +23,7 @@ data LispVal =
     | List [LispVal]
     | DottedList [LispVal] LispVal
     | Number Integer
+    | Float Double
     | String String
     | Bool Bool
     | Character Char
@@ -37,9 +38,6 @@ parseCharacter = do
     char '\\'
     rest <- letter <|> symbol
     return $ Character rest
-
--- TODO: Add support for floats.
--- parseFloat :: Parser Float
 
 escapedChars :: Parser Char
 escapedChars = do
@@ -110,6 +108,13 @@ parseNumber :: Parser LispVal
 parseNumber = do
     num <- parseDigital1 <|> parseDigital2 <|> parseHex <|> parseOct <|> parseBin
     return $ num
+
+parseFloat :: Parser LispVal
+parseFloat = do
+    x <- many1 digit
+    char '.'
+    y <- many1 digit
+    return $ Float (fst.head$readFloat (x++"."++y))
 
 spaces :: Parser ()
 spaces = skipMany1 space
