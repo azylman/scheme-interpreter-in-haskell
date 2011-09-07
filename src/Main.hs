@@ -40,11 +40,21 @@ parseCharacter = do
 -- TODO: Add support for floats.
 -- parseFloat :: Parser Float
 
--- TODO: Add support for escaped characters (e.g. \", \n, \r, \t, \\).
+escapedChars :: Parser Char
+escapedChars = do
+    char '\\'
+    x <- oneOf "\\\"nrt"
+    return $ case x of
+        '\\' -> x
+        '"'  -> x
+        'n'  -> '\n'
+        'r'  -> '\r'
+        't'  -> '\t'
+
 parseString :: Parser LispVal
 parseString = do
     char '"'
-    x <- many (noneOf "\"")
+    x <- many $ escapedChars <|> noneOf "\"\\"
     char '"'
     return $ String x
 
@@ -60,7 +70,9 @@ parseAtom = do
 
 -- TODO: Allow support for different bases.
 parseNumber :: Parser LispVal
-parseNumber = liftM (Number . read) $ many1 digit
+parseNumber = do
+    x <- many1 digit
+    (return . Number . read) x
 
 spaces :: Parser ()
 spaces = skipMany1 space
