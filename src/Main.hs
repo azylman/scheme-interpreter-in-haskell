@@ -17,6 +17,8 @@ import System.Environment
 import Text.ParserCombinators.Parsec hiding (spaces)
 import Control.Monad
 import Numeric
+import Ratio
+import Complex
 
 data LispVal =
       Atom String
@@ -24,6 +26,8 @@ data LispVal =
     | DottedList [LispVal] LispVal
     | Number Integer
     | Float Double
+    | Ratio Rational
+    | Complex (Complex Double)
     | String String
     | Bool Bool
     | Character Char
@@ -83,14 +87,22 @@ bin2dig' digint (x:xs) =
     let old = 2 * digint + (if x == '0' then 0 else 1) in
         bin2dig' old xs
 
-parseDigital1 :: Parser LispVal
-parseDigital1 = do x <- many1 digit
-                   (return . Number . read) x
+parseDecimal1 :: Parser LispVal
+parseDecimal1 = do
+    x <- many1 digit
+    (return . Number . read) x
 
-parseDigital2 :: Parser LispVal
-parseDigital2 = do try $ string "#d"
-                   x <- many1 digit
-                   (return . Number . read) x
+parseDecimal2 :: Parser LispVal
+parseDecimal2 = do
+    try $ string "#d"
+    x <- many1 digit
+    (return . Number . read) x
+
+parseDecimal :: Parser LispVal
+parseDecimal = do
+    num <- parseDecimal1 <|> parseDecimal2
+    return $ num
+
 parseHex :: Parser LispVal
 parseHex = do try $ string "#x"
               x <- many1 hexDigit
@@ -106,7 +118,7 @@ parseBin = do try $ string "#b"
 
 parseNumber :: Parser LispVal
 parseNumber = do
-    num <- parseDigital1 <|> parseDigital2 <|> parseHex <|> parseOct <|> parseBin
+    num <- parseDecimal <|> parseHex <|> parseOct <|> parseBin
     return $ num
 
 parseFloat :: Parser LispVal
@@ -116,6 +128,25 @@ parseFloat = do
     y <- many1 digit
     return $ Float (fst.head$readFloat (x++"."++y))
 
+parseRatio :: Parser LispVal
+parseRatio = do
+    x <- many1 digit
+    char '/'
+    y <- many1 digit
+    return $ Ratio ((read x) % (read y))
+
+toDouble :: LispVal -> Double
+toDouble(Float f) = f
+toDouble(Number n) = fromIntegral n
+
+parseComplex :: Parser LispVal
+parseComplex = do
+    x <- (try parseFloat <|> parseDecimal)
+    char '+'
+    y <- (try parseFloat <|> parseDecimal)
+    char 'i'
+    return $ Complex (toDouble x :+ toDouble y)
+
 spaces :: Parser ()
 spaces = skipMany1 space
 
@@ -124,6 +155,9 @@ parseExpr =
         parseCharacter
     <|> parseAtom
     <|> parseString
+    <|> parseComplex
+    <|> parseFloat
+    <|> parseRatio
     <|> parseNumber
     <|> parseBool
 
